@@ -1,0 +1,54 @@
+package com.example.employeeapi.controller;
+
+import com.example.employeeapi.model.Employee;
+import com.example.employeeapi.service.EmployeeService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Arrays;
+
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(EmployeeController.class)
+public class EmployeeControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private EmployeeService service;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Test
+    void testGetAll() throws Exception {
+        when(service.getAll()).thenReturn(
+                Arrays.asList(new Employee(1, "Aman", "aman@test.com"))
+        );
+
+        mockMvc.perform(get("/api/employees"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Aman"));
+    }
+
+    @Test
+    void testCreate() throws Exception {
+        Employee emp = new Employee(2, "Riya", "riya@test.com");
+
+        when(service.create(emp)).thenReturn(emp);
+
+        mockMvc.perform(post("/api/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(emp)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("riya@test.com"));
+    }
+}
